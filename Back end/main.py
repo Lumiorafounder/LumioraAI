@@ -2,7 +2,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
 
+from database import engine, Base
+import models
+
 app = FastAPI()
+
+Base.metadata.create_all(bind=engine)
 
 class Student(BaseModel):
     id: int
