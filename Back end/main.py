@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import uvicorn
 
 app = FastAPI()
 
@@ -8,6 +9,17 @@ class Student(BaseModel):
     name: str
     student_class: str
 
+
+class Teacher(BaseModel):
+    id: int
+    name: str
+    subject: str
+
+
+students_db = []
+teachers_db = []
+
+
 @app.get("/")
 def home():
     return {
@@ -15,39 +27,32 @@ def home():
         "project": "AI Powered School ERP"
     }
 
+
 @app.get("/students")
 def get_students():
-    return [
-        {
-            "id": 1,
-            "name": "Aryan",
-            "class": "2nd"
-        },
-        {
-            "id": 2,
-            "name": "Ananya",
-            "class": "5th"
-        }
-    ]
+    return students_db
 
-@app.get("/teachers")
-def get_teachers():
-    return [
-        {
-            "id": 1,
-            "name": "Ravi Kumar",
-            "subject": "Mathematics"
-        },
-        {
-            "id": 2,
-            "name": "Lakshmi",
-            "subject": "Science"
-        }
-    ]
 
 @app.post("/students")
 def add_student(student: Student):
+    students_db.append(student.model_dump())
     return {
-        "message": "Student added successfully",
-        "student": student
+        "message": "Student added successfully"
     }
+
+
+@app.get("/teachers")
+def get_teachers():
+    return teachers_db
+
+
+@app.post("/teachers")
+def add_teacher(teacher: Teacher):
+    teachers_db.append(teacher.model_dump())
+    return {
+        "message": "Teacher added successfully"
+    }
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)
