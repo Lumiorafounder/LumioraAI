@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import uvicorn
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB
 
 
 app = FastAPI()
@@ -27,6 +27,14 @@ class Attendance(BaseModel):
     id: int
     student_id: int
     date: str
+    status: str
+
+
+class Fees(BaseModel):
+    id: int
+    student_id: int
+    amount: int
+    month: str
     status: str
 
 
@@ -277,6 +285,88 @@ def delete_attendance(attendance_id: int):
 
     return {
         "message": "Attendance deleted successfully"
+    }
+
+# ---------------- FEES APIs ----------------
+
+@app.get("/fees")
+def get_fees():
+    db = SessionLocal()
+    fees = db.query(FeesDB).all()
+    db.close()
+    return fees
+
+
+@app.post("/fees")
+def add_fee(fee: Fees):
+    db = SessionLocal()
+
+    new_fee = FeesDB(
+        id=fee.id,
+        student_id=fee.student_id,
+        amount=fee.amount,
+        month=fee.month,
+        status=fee.status
+    )
+
+    db.add(new_fee)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Fee added successfully"
+    }
+
+
+@app.put("/fees/{fee_id}")
+def update_fee(fee_id: int, fee: Fees):
+    db = SessionLocal()
+
+    db_fee = db.query(FeesDB).filter(
+        FeesDB.id == fee_id
+    ).first()
+
+    if not db_fee:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Fee record not found"
+        )
+
+    db_fee.student_id = fee.student_id
+    db_fee.amount = fee.amount
+    db_fee.month = fee.month
+    db_fee.status = fee.status
+
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Fee updated successfully"
+    }
+
+
+@app.delete("/fees/{fee_id}")
+def delete_fee(fee_id: int):
+    db = SessionLocal()
+
+    fee = db.query(FeesDB).filter(
+        FeesDB.id == fee_id
+    ).first()
+
+    if not fee:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Fee record not found"
+        )
+
+    db.delete(fee)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Fee deleted successfully"
     }
 
 

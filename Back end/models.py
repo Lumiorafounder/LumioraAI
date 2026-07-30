@@ -2,8 +2,6 @@ from sqlalchemy import Column, Integer, String
 from database import Base
 
 
-# ---------------- STUDENT TABLE ----------------
-
 class StudentDB(Base):
     __tablename__ = "students"
 
@@ -11,8 +9,6 @@ class StudentDB(Base):
     name = Column(String)
     student_class = Column(String)
 
-
-# ---------------- TEACHER TABLE ----------------
 
 class TeacherDB(Base):
     __tablename__ = "teachers"
@@ -22,12 +18,20 @@ class TeacherDB(Base):
     subject = Column(String)
 
 
-# ---------------- ATTENDANCE TABLE ----------------
-
 class AttendanceDB(Base):
     __tablename__ = "attendance"
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer)
     date = Column(String)
+    status = Column(String)
+
+
+class FeesDB(Base):
+    __tablename__ = "fees"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer)
+    amount = Column(Integer)
+    month = Column(String)
     status = Column(String)
