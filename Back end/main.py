@@ -199,15 +199,13 @@ def delete_teacher(teacher_id: int):
     }
 
     # ---------------- ATTENDANCE APIs ----------------
+# ---------------- ATTENDANCE APIs ----------------
 
 @app.get("/attendance")
 def get_attendance():
     db = SessionLocal()
-
     attendance = db.query(AttendanceDB).all()
-
     db.close()
-
     return attendance
 
 
@@ -228,6 +226,57 @@ def add_attendance(attendance: Attendance):
 
     return {
         "message": "Attendance added successfully"
+    }
+
+
+@app.put("/attendance/{attendance_id}")
+def update_attendance(attendance_id: int, attendance: Attendance):
+    db = SessionLocal()
+
+    db_attendance = db.query(AttendanceDB).filter(
+        AttendanceDB.id == attendance_id
+    ).first()
+
+    if not db_attendance:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Attendance not found"
+        )
+
+    db_attendance.student_id = attendance.student_id
+    db_attendance.date = attendance.date
+    db_attendance.status = attendance.status
+
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Attendance updated successfully"
+    }
+
+
+@app.delete("/attendance/{attendance_id}")
+def delete_attendance(attendance_id: int):
+    db = SessionLocal()
+
+    attendance = db.query(AttendanceDB).filter(
+        AttendanceDB.id == attendance_id
+    ).first()
+
+    if not attendance:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Attendance not found"
+        )
+
+    db.delete(attendance)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Attendance deleted successfully"
     }
 
 
