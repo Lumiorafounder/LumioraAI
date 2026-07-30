@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import uvicorn
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB
+from models import StudentDB, TeacherDB, AttendanceDB
 
 
 app = FastAPI()
@@ -23,6 +23,13 @@ class Teacher(BaseModel):
     subject: str
 
 
+class Attendance(BaseModel):
+    id: int
+    student_id: int
+    date: str
+    status: str
+
+
 @app.get("/")
 def home():
     return {
@@ -31,7 +38,7 @@ def home():
     }
 
 
-# -------- STUDENT APIs --------
+# ---------------- STUDENT APIs ----------------
 
 @app.get("/students")
 def get_students():
@@ -110,7 +117,7 @@ def delete_student(student_id: int):
     }
 
 
-# -------- TEACHER APIs --------
+# ---------------- TEACHER APIs ----------------
 
 @app.get("/teachers")
 def get_teachers():
@@ -139,6 +146,88 @@ def add_teacher(teacher: Teacher):
 
     return {
         "message": "Teacher added successfully to database"
+    }
+
+
+@app.put("/teachers/{teacher_id}")
+def update_teacher(teacher_id: int, teacher: Teacher):
+    db = SessionLocal()
+
+    db_teacher = db.query(TeacherDB).filter(
+        TeacherDB.id == teacher_id
+    ).first()
+
+    if not db_teacher:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Teacher not found"
+        )
+
+    db_teacher.name = teacher.name
+    db_teacher.subject = teacher.subject
+
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Teacher updated successfully"
+    }
+
+
+@app.delete("/teachers/{teacher_id}")
+def delete_teacher(teacher_id: int):
+    db = SessionLocal()
+
+    teacher = db.query(TeacherDB).filter(
+        TeacherDB.id == teacher_id
+    ).first()
+
+    if not teacher:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Teacher not found"
+        )
+
+    db.delete(teacher)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Teacher deleted successfully"
+    }
+
+    # ---------------- ATTENDANCE APIs ----------------
+
+@app.get("/attendance")
+def get_attendance():
+    db = SessionLocal()
+
+    attendance = db.query(AttendanceDB).all()
+
+    db.close()
+
+    return attendance
+
+
+@app.post("/attendance")
+def add_attendance(attendance: Attendance):
+    db = SessionLocal()
+
+    new_attendance = AttendanceDB(
+        id=attendance.id,
+        student_id=attendance.student_id,
+        date=attendance.date,
+        status=attendance.status
+    )
+
+    db.add(new_attendance)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Attendance added successfully"
     }
 
 
