@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import uvicorn
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB, FeesDB
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB
 
 
 app = FastAPI()
@@ -36,6 +36,12 @@ class Fees(BaseModel):
     amount: int
     month: str
     status: str
+class SubjectDB(Base):
+    __tablename__ = "subjects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    teacher_id = Column(Integer)
 
 
 @app.get("/")
@@ -370,6 +376,87 @@ def delete_fee(fee_id: int):
     }
 
 
+
+# ---------------- SUBJECT APIs ----------------
+
+@app.get("/subjects")
+def get_subjects():
+    db = SessionLocal()
+
+    subjects = db.query(SubjectDB).all()
+
+    db.close()
+
+    return subjects
+
+
+@app.post("/subjects")
+def add_subject(subject: Subject):
+    db = SessionLocal()
+
+    new_subject = SubjectDB(
+        id=subject.id,
+        name=subject.name,
+        teacher_id=subject.teacher_id
+    )
+
+    db.add(new_subject)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Subject added successfully"
+    }
+
+
+@app.put("/subjects/{subject_id}")
+def update_subject(subject_id: int, subject: Subject):
+    db = SessionLocal()
+
+    db_subject = db.query(SubjectDB).filter(
+        SubjectDB.id == subject_id
+    ).first()
+
+    if not db_subject:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Subject not found"
+        )
+
+    db_subject.name = subject.name
+    db_subject.teacher_id = subject.teacher_id
+
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Subject updated successfully"
+    }
+
+
+@app.delete("/subjects/{subject_id}")
+def delete_subject(subject_id: int):
+    db = SessionLocal()
+
+    subject = db.query(SubjectDB).filter(
+        SubjectDB.id == subject_id
+    ).first()
+
+    if not subject:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Subject not found"
+        )
+
+    db.delete(subject)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Subject deleted successfully"
+    }
 if __name__ == "__main__":
     uvicorn.run(
         app,

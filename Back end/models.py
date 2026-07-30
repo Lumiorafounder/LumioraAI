@@ -35,3 +35,10 @@ class FeesDB(Base):
     amount = Column(Integer)
     month = Column(String)
     status = Column(String)
+
+    class SubjectDB(Base):
+    __tablename__ = "subjects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    teacher_id = Column(Integer)
