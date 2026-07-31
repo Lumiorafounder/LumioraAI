@@ -4,8 +4,11 @@ import uvicorn
 
 from database import engine, Base, SessionLocal
 from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB
-from auth import hash_password, verify_password
-
+from auth import (
+    hash_password,
+    verify_password,
+    create_access_token
+)
 from auth import hash_password, verify_password
 from jose import jwt
 from auth import hash_password, verify_password
@@ -534,14 +537,19 @@ def login(data: LoginRequest):
             detail="Invalid password"
         )
 
+    token = create_access_token({
+        "username": user.username,
+        "role": user.role
+    })
+
     db.close()
 
     return {
-        "message": "Login successful",
+        "access_token": token,
+        "token_type": "bearer",
         "username": user.username,
         "role": user.role
     }
-
 
 if __name__ == "__main__":
     uvicorn.run(
