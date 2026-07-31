@@ -36,13 +36,11 @@ class Fees(BaseModel):
     amount: int
     month: str
     status: str
-class SubjectDB(Base):
-    __tablename__ = "subjects"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    teacher_id = Column(Integer)
-
+class Subject(BaseModel):
+    id: int
+    name: str
+    teacher_id: int
 
 @app.get("/")
 def home():

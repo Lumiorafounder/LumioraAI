@@ -36,7 +36,8 @@ class FeesDB(Base):
     month = Column(String)
     status = Column(String)
 
-    class SubjectDB(Base):
+
+class SubjectDB(Base):
     __tablename__ = "subjects"
 
     id = Column(Integer, primary_key=True, index=True)
