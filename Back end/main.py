@@ -7,8 +7,10 @@ from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB
 from auth import (
     hash_password,
     verify_password,
-    create_access_token
+    create_access_token,
+    verify_token
 )
+
 from auth import hash_password, verify_password
 from jose import jwt
 from auth import hash_password, verify_password
@@ -530,7 +532,10 @@ def login(data: LoginRequest):
             detail="User not found"
         )
 
-    if not verify_password(data.password, user.password):
+    if not verify_password(
+        data.password,
+        user.password
+    ):
         db.close()
         raise HTTPException(
             status_code=401,
@@ -550,7 +555,6 @@ def login(data: LoginRequest):
         "username": user.username,
         "role": user.role
     }
-
 if __name__ == "__main__":
     uvicorn.run(
         app,
