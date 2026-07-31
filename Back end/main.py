@@ -3,7 +3,12 @@ from pydantic import BaseModel
 import uvicorn
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB
+from auth import hash_password, verify_password
+
+from auth import hash_password, verify_password
+from jose import jwt
+from auth import hash_password, verify_password
 
 
 app = FastAPI()
@@ -12,6 +17,7 @@ Base.metadata.create_all(bind=engine)
 
 
 class Student(BaseModel):
+
     id: int
     name: str
     student_class: str
@@ -37,10 +43,23 @@ class Fees(BaseModel):
     month: str
     status: str
 
+
 class Subject(BaseModel):
     id: int
     name: str
     teacher_id: int
+
+
+class User(BaseModel):
+    id: int
+    username: str
+    password: str
+    role: str
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
 
 @app.get("/")
 def home():
@@ -455,6 +474,75 @@ def delete_subject(subject_id: int):
     return {
         "message": "Subject deleted successfully"
     }
+
+    app.get("/users")
+def get_users():
+    db = SessionLocal()
+    users = db.query(UserDB).all()
+    db.close()
+    return users
+
+@app.post("/register")
+def register(user: User):
+    db = SessionLocal()
+
+    existing_user = db.query(UserDB).filter(
+        UserDB.username == user.username
+    ).first()
+
+    if existing_user:
+        db.close()
+        raise HTTPException(
+            status_code=400,
+            detail="Username already exists"
+        )
+
+    new_user = UserDB(
+        id=user.id,
+        username=user.username,
+        password=hash_password(user.password),
+        role=user.role
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "User registered successfully"
+    }
+
+@app.post("/login")
+def login(data: LoginRequest):
+    db = SessionLocal()
+
+    user = db.query(UserDB).filter(
+        UserDB.username == data.username
+    ).first()
+
+    if not user:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    if not verify_password(data.password, user.password):
+        db.close()
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid password"
+        )
+
+    db.close()
+
+    return {
+        "message": "Login successful",
+        "username": user.username,
+        "role": user.role
+    }
+
+
 if __name__ == "__main__":
     uvicorn.run(
         app,

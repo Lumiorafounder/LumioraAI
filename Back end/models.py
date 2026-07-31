@@ -43,3 +43,12 @@ class SubjectDB(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     teacher_id = Column(Integer)
+
+
+class UserDB(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+    role = Column(String)
