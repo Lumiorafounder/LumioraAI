@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
+from fastapi import Depends
+
 
 from database import engine, Base, SessionLocal
 from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB

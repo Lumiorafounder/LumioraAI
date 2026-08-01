@@ -1,14 +1,13 @@
 from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
-from fastapi import HTTPException
-
+from fastapi import HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
 )
-
 
 SECRET_KEY = "lumiora_ai_secret_key"
 ALGORITHM = "HS256"
@@ -61,3 +60,10 @@ def verify_token(token: str):
             status_code=401,
             detail="Invalid token"
         )
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    return verify_token(token)
