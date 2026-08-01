@@ -579,6 +579,15 @@ def teacher_dashboard(
     }
 
 
+@app.get("/student/dashboard")
+def student_dashboard(
+    current_user: dict = Depends(require_role("student"))
+):
+    return {
+        "message": "Welcome Student",
+        "user": current_user
+    }
+
 if __name__ == "__main__":
     uvicorn.run(
         app,
