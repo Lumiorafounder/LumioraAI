@@ -52,3 +52,11 @@ class UserDB(Base):
     username = Column(String, unique=True, index=True)
     password = Column(String)
     role = Column(String)
+
+class MarksDB(Base):
+    __tablename__ = "marks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer)
+    subject = Column(String)
+    marks = Column(Integer)

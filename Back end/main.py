@@ -6,7 +6,7 @@ from fastapi import Depends
 
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB
 from auth import (
     hash_password,
     verify_password,
@@ -648,16 +648,24 @@ def student_subjects(
 def student_progress(
     current_user: dict = Depends(require_role("student"))
 ):
+    db = SessionLocal()
+
+    marks = db.query(MarksDB).filter(
+        MarksDB.student_id == 1
+    ).all()
+
+    db.close()
+
     return {
         "student": current_user["username"],
-        "progress": {
-            "Mathematics": 85,
-            "Science": 90,
-            "English": 78,
-            "grade": "A"
-        }
+        "progress": [
+            {
+                "subject": item.subject,
+                "marks": item.marks
+            }
+            for item in marks
+        ]
     }
-
 
 @app.get("/teacher/subjects")
 def teacher_subjects(
@@ -698,14 +706,23 @@ def mark_attendance(
 def upload_marks(
     current_user: dict = Depends(require_role("teacher"))
 ):
+    db = SessionLocal()
+
+    marks = MarksDB(
+        student_id=1,
+        subject="Mathematics",
+        marks=95
+    )
+
+    db.add(marks)
+    db.commit()
+    db.refresh(marks)
+
+    db.close()
+
     return {
-        "message": "Marks uploaded successfully",
-        "teacher": current_user["username"],
-        "marks": {
-            "student": "student_new",
-            "subject": "Mathematics",
-            "marks": 95
-        }
+        "message": "Marks saved successfully",
+        "id": marks.id
     }
 
 if __name__ == "__main__":
