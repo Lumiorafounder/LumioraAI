@@ -1,0 +1,13 @@
+Oka chinna habit maintain cheyyi
+
+Feature complete ayyaka:
+
+git add .
+git commit -m "Completed <feature name>"
+git push origin main
+
+Example:
+
+git add .
+git commit -m "Added role based authentication"
+git push origin main
