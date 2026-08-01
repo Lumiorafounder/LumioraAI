@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 import uvicorn
 from fastapi import Depends
@@ -521,11 +522,11 @@ def register(user: User):
     }
 
 @app.post("/login")
-def login(data: LoginRequest):
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
     db = SessionLocal()
 
     user = db.query(UserDB).filter(
-        UserDB.username == data.username
+        UserDB.username == form_data.username
     ).first()
 
     if not user:
@@ -536,7 +537,7 @@ def login(data: LoginRequest):
         )
 
     if not verify_password(
-        data.password,
+        form_data.password,
         user.password
     ):
         db.close()
@@ -554,9 +555,7 @@ def login(data: LoginRequest):
 
     return {
         "access_token": token,
-        "token_type": "bearer",
-        "username": user.username,
-        "role": user.role
+        "token_type": "bearer"
     }
 
 
