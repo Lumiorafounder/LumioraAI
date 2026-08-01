@@ -636,7 +636,6 @@ def student_subjects(
         ]
     }
 
-
 @app.get("/student/progress")
 def student_progress(
     current_user: dict = Depends(require_role("student"))
@@ -650,6 +649,20 @@ def student_progress(
             "grade": "A"
         }
     }
+
+
+@app.get("/teacher/subjects")
+def teacher_subjects(
+    current_user: dict = Depends(require_role("teacher"))
+):
+    return {
+        "teacher": current_user["username"],
+        "subjects": [
+            "Mathematics",
+            "Science"
+        ]
+    }
+    
 
 if __name__ == "__main__":
     uvicorn.run(
