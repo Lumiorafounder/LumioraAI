@@ -558,7 +558,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         "token_type": "bearer"
     }
 
-
 @app.get("/admin/dashboard")
 def admin_dashboard(
     current_user: dict = Depends(require_role("admin"))
@@ -568,6 +567,30 @@ def admin_dashboard(
         "user": current_user
     }
 
+
+@app.post("/admin/fees")
+def add_fees(
+    current_user: dict = Depends(require_role("admin"))
+):
+    db = SessionLocal()
+
+    fees = FeesDB(
+        student_id=1,
+        amount=50000,
+        month="August",
+        status="Pending"
+    )
+
+    db.add(fees)
+    db.commit()
+    db.refresh(fees)
+
+    db.close()
+
+    return {
+        "message": "Fees added successfully",
+        "id": fees.id
+    }
 
 @app.get("/teacher/dashboard")
 def teacher_dashboard(
@@ -616,14 +639,24 @@ def student_attendance(
 def student_fees(
     current_user: dict = Depends(require_role("student"))
 ):
+    db = SessionLocal()
+
+    fees = db.query(FeesDB).filter(
+        FeesDB.student_id == 1
+    ).all()
+
+    db.close()
+
     return {
         "student": current_user["username"],
-        "fees": {
-            "total": 50000,
-            "paid": 30000,
-            "pending": 20000,
-            "status": "Pending"
-        }
+        "fees": [
+            {
+                "month": item.month,
+                "amount": item.amount,
+                "status": item.status
+            }
+            for item in fees
+        ]
     }
 
 @app.get("/student/subjects")
