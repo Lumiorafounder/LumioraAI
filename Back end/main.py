@@ -662,7 +662,6 @@ def teacher_subjects(
             "Science"
         ]
     }
-
 @app.post("/teacher/attendance")
 def mark_attendance(
     current_user: dict = Depends(require_role("teacher"))
@@ -678,6 +677,19 @@ def mark_attendance(
     }
 
 
+@app.post("/teacher/marks")
+def upload_marks(
+    current_user: dict = Depends(require_role("teacher"))
+):
+    return {
+        "message": "Marks uploaded successfully",
+        "teacher": current_user["username"],
+        "marks": {
+            "student": "student_new",
+            "subject": "Mathematics",
+            "marks": 95
+        }
+    }
 
 if __name__ == "__main__":
     uvicorn.run(
