@@ -662,7 +662,22 @@ def teacher_subjects(
             "Science"
         ]
     }
-    
+
+@app.post("/teacher/attendance")
+def mark_attendance(
+    current_user: dict = Depends(require_role("teacher"))
+):
+    return {
+        "message": "Attendance marked successfully",
+        "teacher": current_user["username"],
+        "attendance": {
+            "student": "student_new",
+            "date": "2026-08-01",
+            "status": "Present"
+        }
+    }
+
+
 
 if __name__ == "__main__":
     uvicorn.run(
