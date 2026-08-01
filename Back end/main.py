@@ -618,7 +618,6 @@ def student_fees(
         }
     }
 
-
 @app.get("/student/subjects")
 def student_subjects(
     current_user: dict = Depends(require_role("student"))
@@ -635,6 +634,21 @@ def student_subjects(
                 "teacher": "Anitha"
             }
         ]
+    }
+
+
+@app.get("/student/progress")
+def student_progress(
+    current_user: dict = Depends(require_role("student"))
+):
+    return {
+        "student": current_user["username"],
+        "progress": {
+            "Mathematics": 85,
+            "Science": 90,
+            "English": 78,
+            "grade": "A"
+        }
     }
 
 if __name__ == "__main__":
