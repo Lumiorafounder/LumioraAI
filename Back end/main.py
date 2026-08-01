@@ -593,16 +593,24 @@ def student_dashboard(
 def student_attendance(
     current_user: dict = Depends(require_role("student"))
 ):
+    db = SessionLocal()
+
+    attendance = db.query(AttendanceDB).filter(
+        AttendanceDB.student_id == 1
+    ).all()
+
+    db.close()
+
     return {
         "student": current_user["username"],
         "attendance": [
             {
-                "date": "2026-08-01",
-                "status": "Present"
+                "date": item.date,
+                "status": item.status
             }
+            for item in attendance
         ]
     }
-
 
 @app.get("/student/fees")
 def student_fees(
@@ -666,14 +674,23 @@ def teacher_subjects(
 def mark_attendance(
     current_user: dict = Depends(require_role("teacher"))
 ):
+    db = SessionLocal()
+
+    attendance = AttendanceDB(
+        student_id=1,
+        date="2026-08-01",
+        status="Present"
+    )
+
+    db.add(attendance)
+    db.commit()
+    db.refresh(attendance)
+
+    db.close()
+
     return {
-        "message": "Attendance marked successfully",
-        "teacher": current_user["username"],
-        "attendance": {
-            "student": "student_new",
-            "date": "2026-08-01",
-            "status": "Present"
-        }
+        "message": "Attendance saved successfully",
+        "id": attendance.id
     }
 
 
