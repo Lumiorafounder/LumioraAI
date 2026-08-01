@@ -588,6 +588,55 @@ def student_dashboard(
         "user": current_user
     }
 
+
+@app.get("/student/attendance")
+def student_attendance(
+    current_user: dict = Depends(require_role("student"))
+):
+    return {
+        "student": current_user["username"],
+        "attendance": [
+            {
+                "date": "2026-08-01",
+                "status": "Present"
+            }
+        ]
+    }
+
+
+@app.get("/student/fees")
+def student_fees(
+    current_user: dict = Depends(require_role("student"))
+):
+    return {
+        "student": current_user["username"],
+        "fees": {
+            "total": 50000,
+            "paid": 30000,
+            "pending": 20000,
+            "status": "Pending"
+        }
+    }
+
+
+@app.get("/student/subjects")
+def student_subjects(
+    current_user: dict = Depends(require_role("student"))
+):
+    return {
+        "student": current_user["username"],
+        "subjects": [
+            {
+                "name": "Mathematics",
+                "teacher": "Ravi"
+            },
+            {
+                "name": "Science",
+                "teacher": "Anitha"
+            }
+        ]
+    }
+
 if __name__ == "__main__":
     uvicorn.run(
         app,
