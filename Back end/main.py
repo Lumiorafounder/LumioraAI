@@ -258,10 +258,12 @@ def add_attendance(attendance: Attendance):
 
     db.add(new_attendance)
     db.commit()
+    db.refresh(new_attendance)
     db.close()
 
     return {
-        "message": "Attendance added successfully"
+        "message": "Attendance added successfully",
+        "id": new_attendance.id
     }
 
 

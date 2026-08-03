@@ -17,7 +17,6 @@ class TeacherDB(Base):
     name = Column(String)
     subject = Column(String)
 
-
 class AttendanceDB(Base):
     __tablename__ = "attendance"
 
@@ -25,7 +24,6 @@ class AttendanceDB(Base):
     student_id = Column(Integer)
     date = Column(String)
     status = Column(String)
-
 
 class FeesDB(Base):
     __tablename__ = "fees"
