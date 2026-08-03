@@ -162,11 +162,29 @@ def delete_student(student_id: int):
 
 @app.get("/teachers")
 def get_teachers():
-    ...
+    db = SessionLocal()
+    teachers = db.query(TeacherDB).all()
+    db.close()
+    return teachers
+
 
 @app.post("/teachers")
 def add_teacher(teacher: Teacher):
-    ...
+    db = SessionLocal()
+
+    new_teacher = TeacherDB(
+        id=teacher.id,
+        name=teacher.name,
+        subject=teacher.subject
+    )
+
+    db.add(new_teacher)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Teacher added successfully"
+    }
 @app.put("/teachers/{teacher_id}")
 def update_teacher(teacher_id: int, teacher: Teacher):
     db = SessionLocal()
