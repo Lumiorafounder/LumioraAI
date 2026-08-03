@@ -39,11 +39,9 @@ class Teacher(BaseModel):
 
 
 class Attendance(BaseModel):
-    id: int
     student_id: int
     date: str
     status: str
-
 
 class Fees(BaseModel):
     id: int
@@ -244,13 +242,11 @@ def get_attendance():
     db.close()
     return attendance
 
-
 @app.post("/attendance")
 def add_attendance(attendance: Attendance):
     db = SessionLocal()
 
     new_attendance = AttendanceDB(
-        id=attendance.id,
         student_id=attendance.student_id,
         date=attendance.date,
         status=attendance.status
