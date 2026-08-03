@@ -66,6 +66,11 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
+class Marks(BaseModel):
+    student_id: int
+    subject: str
+    marks: int
+
 
 @app.get("/")
 def home():
@@ -763,30 +768,89 @@ def mark_attendance(
         "id": attendance.id
     }
 
-
 @app.post("/teacher/marks")
 def upload_marks(
+    marks: Marks,
     current_user: dict = Depends(require_role("teacher"))
 ):
     db = SessionLocal()
 
-    marks = MarksDB(
-        student_id=1,
-        subject="Mathematics",
-        marks=95
+    new_marks = MarksDB(
+        student_id=marks.student_id,
+        subject=marks.subject,
+        marks=marks.marks
     )
 
-    db.add(marks)
+    db.add(new_marks)
     db.commit()
-    db.refresh(marks)
+    db.refresh(new_marks)
 
     db.close()
 
     return {
         "message": "Marks saved successfully",
-        "id": marks.id
+        "id": new_marks.id
+        }
+@app.get("/marks")
+def get_marks():
+    db = SessionLocal()
+
+    marks = db.query(MarksDB).all()
+
+    db.close()
+
+    return marks
+
+
+@app.put("/marks/{marks_id}")
+def update_marks(marks_id: int, marks: Marks):
+    db = SessionLocal()
+
+    db_marks = db.query(MarksDB).filter(
+        MarksDB.id == marks_id
+    ).first()
+
+    if not db_marks:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Marks not found"
+        )
+
+    db_marks.student_id = marks.student_id
+    db_marks.subject = marks.subject
+    db_marks.marks = marks.marks
+
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Marks updated successfully"
     }
 
+@app.delete("/marks/{marks_id}")
+def delete_marks(marks_id: int):
+    db = SessionLocal()
+
+    marks = db.query(MarksDB).filter(
+        MarksDB.id == marks_id
+    ).first()
+
+    if not marks:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Marks not found"
+        )
+
+    db.delete(marks)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Marks deleted successfully"
+    }
+  
 if __name__ == "__main__":
     uvicorn.run(
         app,
