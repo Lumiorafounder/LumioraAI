@@ -111,27 +111,29 @@ def add_student(student: Student):
 def update_student(student_id: int, student: Student):
     db = SessionLocal()
 
-    db_student = db.query(StudentDB).filter(
+    existing_student = db.query(StudentDB).filter(
         StudentDB.id == student_id
     ).first()
 
-    if not db_student:
+    if not existing_student:
         db.close()
         raise HTTPException(
             status_code=404,
             detail="Student not found"
         )
 
-    db_student.name = student.name
-    db_student.student_class = student.student_class
+    existing_student.name = student.name
+    existing_student.student_class = student.student_class
 
     db.commit()
+    db.refresh(existing_student)
+
     db.close()
 
     return {
-        "message": "Student updated successfully"
+        "message": "Student updated successfully",
+        "student": existing_student
     }
-
 
 @app.delete("/students/{student_id}")
 def delete_student(student_id: int):
@@ -155,7 +157,6 @@ def delete_student(student_id: int):
     return {
         "message": "Student deleted successfully"
     }
-
 
 # ---------------- TEACHER APIs ----------------
 
@@ -405,15 +406,26 @@ def delete_fee(fee_id: int):
 
 # ---------------- SUBJECT APIs ----------------
 
-@app.get("/subjects")
-def get_subjects():
+@app.get("/student/subjects")
+def student_subjects(
+    current_user: dict = Depends(require_role("student"))
+):
     db = SessionLocal()
 
     subjects = db.query(SubjectDB).all()
 
     db.close()
 
-    return subjects
+    return {
+        "student": current_user["username"],
+        "subjects": [
+            {
+                "name": item.name,
+                "teacher_id": item.teacher_id
+            }
+            for item in subjects
+        ]
+    }
 
 
 @app.post("/subjects")
@@ -590,6 +602,28 @@ def add_fees(
     return {
         "message": "Fees added successfully",
         "id": fees.id
+    }
+
+@app.post("/admin/subjects")
+def add_subject(
+    current_user: dict = Depends(require_role("admin"))
+):
+    db = SessionLocal()
+
+    subject = SubjectDB(
+        name="Mathematics",
+        teacher_id=1
+    )
+
+    db.add(subject)
+    db.commit()
+    db.refresh(subject)
+
+    db.close()
+
+    return {
+        "message": "Subject added successfully",
+        "id": subject.id
     }
 
 @app.get("/teacher/dashboard")
