@@ -44,7 +44,6 @@ class Attendance(BaseModel):
     status: str
 
 class Fees(BaseModel):
-    id: int
     student_id: int
     amount: int
     month: str
@@ -318,81 +317,84 @@ def delete_attendance(attendance_id: int):
 @app.get("/fees")
 def get_fees():
     db = SessionLocal()
+
     fees = db.query(FeesDB).all()
+
     db.close()
+
     return fees
 
 
 @app.post("/fees")
-def add_fee(fee: Fees):
+def add_fees(fees: Fees):
     db = SessionLocal()
 
-    new_fee = FeesDB(
-        id=fee.id,
-        student_id=fee.student_id,
-        amount=fee.amount,
-        month=fee.month,
-        status=fee.status
+    new_fees = FeesDB(
+        student_id=fees.student_id,
+        amount=fees.amount,
+        month=fees.month,
+        status=fees.status
     )
 
-    db.add(new_fee)
+    db.add(new_fees)
     db.commit()
+    db.refresh(new_fees)
     db.close()
 
     return {
-        "message": "Fee added successfully"
+        "message": "Fees added successfully",
+        "id": new_fees.id
     }
 
 
-@app.put("/fees/{fee_id}")
-def update_fee(fee_id: int, fee: Fees):
+@app.put("/fees/{fees_id}")
+def update_fees(fees_id: int, fees: Fees):
     db = SessionLocal()
 
-    db_fee = db.query(FeesDB).filter(
-        FeesDB.id == fee_id
+    db_fees = db.query(FeesDB).filter(
+        FeesDB.id == fees_id
     ).first()
 
-    if not db_fee:
+    if not db_fees:
         db.close()
         raise HTTPException(
             status_code=404,
-            detail="Fee record not found"
+            detail="Fees not found"
         )
 
-    db_fee.student_id = fee.student_id
-    db_fee.amount = fee.amount
-    db_fee.month = fee.month
-    db_fee.status = fee.status
+    db_fees.student_id = fees.student_id
+    db_fees.amount = fees.amount
+    db_fees.month = fees.month
+    db_fees.status = fees.status
 
     db.commit()
     db.close()
 
     return {
-        "message": "Fee updated successfully"
+        "message": "Fees updated successfully"
     }
 
-
-@app.delete("/fees/{fee_id}")
-def delete_fee(fee_id: int):
+@app.delete("/fees/{fees_id}")
+def delete_fees(fees_id: int):
     db = SessionLocal()
 
-    fee = db.query(FeesDB).filter(
-        FeesDB.id == fee_id
+    fees = db.query(FeesDB).filter(
+        FeesDB.id == fees_id
     ).first()
 
-    if not fee:
+    if not fees:
         db.close()
         raise HTTPException(
             status_code=404,
-            detail="Fee record not found"
+            detail="Fees not found"
         )
 
-    db.delete(fee)
+    db.delete(fees)
     db.commit()
     db.close()
 
     return {
-        "message": "Fee deleted successfully"
+        "message": "Fees deleted successfully"
     }
 
 
