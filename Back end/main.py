@@ -6,7 +6,7 @@ from fastapi import Depends
 
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB, HomeworkDB
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB, HomeworkDB, ExamDB
 from auth import (
     hash_password,
     verify_password,
@@ -80,6 +80,12 @@ class Homework(BaseModel):
     subject: str
     title: str
     due_date: str
+
+class Exam(BaseModel):
+    exam_name: str
+    class_name: str
+    exam_date: str
+    total_marks: int
 
 @app.get("/")
 def home():
@@ -1025,7 +1031,88 @@ def delete_homework(homework_id: int):
     return {
         "message": "Homework deleted successfully"
     }
-  
+
+@app.post("/exams")
+def add_exam(exam: Exam):
+    db = SessionLocal()
+
+    new_exam = ExamDB(
+        exam_name=exam.exam_name,
+        class_name=exam.class_name,
+        exam_date=exam.exam_date,
+        total_marks=exam.total_marks
+    )
+
+    db.add(new_exam)
+    db.commit()
+    db.refresh(new_exam)
+    db.close()
+
+    return {
+        "message": "Exam added successfully",
+        "id": new_exam.id
+    }
+
+@app.get("/exams")
+def get_exams():
+    db = SessionLocal()
+
+    exams = db.query(ExamDB).all()
+
+    db.close()
+
+    return exams
+
+@app.put("/exams/{exam_id}")
+def update_exam(exam_id: int, exam: Exam):
+    db = SessionLocal()
+
+    db_exam = db.query(ExamDB).filter(
+        ExamDB.id == exam_id
+    ).first()
+
+    if not db_exam:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Exam not found"
+        )
+
+    db_exam.exam_name = exam.exam_name
+    db_exam.class_name = exam.class_name
+    db_exam.exam_date = exam.exam_date
+    db_exam.total_marks = exam.total_marks
+
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Exam updated successfully"
+    }
+
+
+@app.delete("/exams/{exam_id}")
+def delete_exam(exam_id: int):
+    db = SessionLocal()
+
+    db_exam = db.query(ExamDB).filter(
+        ExamDB.id == exam_id
+    ).first()
+
+    if not db_exam:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Exam not found"
+        )
+
+    db.delete(db_exam)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Exam deleted successfully"
+    }
 if __name__ == "__main__":
     uvicorn.run(
         app,

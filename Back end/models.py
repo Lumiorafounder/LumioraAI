@@ -80,3 +80,12 @@ class HomeworkDB(Base):
     subject = Column(String)
     title = Column(String)
     due_date = Column(String)
+
+class ExamDB(Base):
+    __tablename__ = "exams"
+
+    id = Column(Integer, primary_key=True, index=True)
+    exam_name = Column(String)
+    class_name = Column(String)
+    exam_date = Column(String)
+    total_marks = Column(Integer)
