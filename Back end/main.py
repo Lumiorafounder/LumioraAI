@@ -1,12 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 import uvicorn
-from fastapi import Depends
-
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB, HomeworkDB, ExamDB
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB, HomeworkDB, ExamDB, TimetableDB
+
 from auth import (
     hash_password,
     verify_password,
@@ -14,11 +13,6 @@ from auth import (
     get_current_user,
     require_role
 )
-
-from auth import hash_password, verify_password
-from jose import jwt
-from auth import hash_password, verify_password
-
 
 app = FastAPI()
 
@@ -86,6 +80,14 @@ class Exam(BaseModel):
     class_name: str
     exam_date: str
     total_marks: int
+
+class Timetable(BaseModel):
+    class_name: str
+    day: str
+    subject: str
+    start_time: str
+    end_time: str
+    teacher_id: int
 
 @app.get("/")
 def home():
@@ -1113,6 +1115,93 @@ def delete_exam(exam_id: int):
     return {
         "message": "Exam deleted successfully"
     }
+
+@app.post("/timetable")
+def add_timetable(timetable: Timetable):
+    db = SessionLocal()
+
+    new_timetable = TimetableDB(
+        class_name=timetable.class_name,
+        day=timetable.day,
+        subject=timetable.subject,
+        start_time=timetable.start_time,
+        end_time=timetable.end_time,
+        teacher_id=timetable.teacher_id
+    )
+
+    db.add(new_timetable)
+    db.commit()
+    db.refresh(new_timetable)
+    db.close()
+
+    return {
+        "message": "Timetable added successfully",
+        "id": new_timetable.id
+    }
+
+@app.get("/timetable")
+def get_timetable():
+    db = SessionLocal()
+
+    timetable = db.query(TimetableDB).all()
+
+    db.close()
+
+    return timetable
+
+@app.put("/timetable/{timetable_id}")
+def update_timetable(timetable_id: int, timetable: Timetable):
+    db = SessionLocal()
+
+    db_timetable = db.query(TimetableDB).filter(
+        TimetableDB.id == timetable_id
+    ).first()
+
+    if not db_timetable:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Timetable not found"
+        )
+
+    db_timetable.class_name = timetable.class_name
+    db_timetable.day = timetable.day
+    db_timetable.subject = timetable.subject
+    db_timetable.start_time = timetable.start_time
+    db_timetable.end_time = timetable.end_time
+    db_timetable.teacher_id = timetable.teacher_id
+
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Timetable updated successfully"
+    }
+
+
+@app.delete("/timetable/{timetable_id}")
+def delete_timetable(timetable_id: int):
+    db = SessionLocal()
+
+    db_timetable = db.query(TimetableDB).filter(
+        TimetableDB.id == timetable_id
+    ).first()
+
+    if not db_timetable:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Timetable not found"
+        )
+
+    db.delete(db_timetable)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Timetable deleted successfully"
+    }
+
 if __name__ == "__main__":
     uvicorn.run(
         app,

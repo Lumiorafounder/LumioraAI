@@ -89,3 +89,14 @@ class ExamDB(Base):
     class_name = Column(String)
     exam_date = Column(String)
     total_marks = Column(Integer)
+
+class TimetableDB(Base):
+    __tablename__ = "timetable"
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_name = Column(String)
+    day = Column(String)
+    subject = Column(String)
+    start_time = Column(String)
+    end_time = Column(String)
+    teacher_id = Column(Integer)
