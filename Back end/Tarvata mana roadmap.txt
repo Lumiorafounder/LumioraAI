@@ -1,0 +1,13 @@
+Tarvata mana roadmap
+
+Nenu suggest chese order:
+
+📖 Homework CRUD
+🧪 Exams CRUD
+📅 Timetable CRUD
+👨‍👩‍👧 Parent CRUD
+🏖 Leave Management
+🤖 AI Progress Report
+📊 Dashboard Analytics
+📱 Flutter Mobile App
+☁️ Deploy (Cloud)

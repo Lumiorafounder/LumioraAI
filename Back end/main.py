@@ -6,7 +6,7 @@ from fastapi import Depends
 
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB, HomeworkDB
 from auth import (
     hash_password,
     verify_password,
@@ -74,6 +74,12 @@ class Class(BaseModel):
     class_name: str
     section: str
     teacher_id: int
+
+class Homework(BaseModel):
+    class_name: str
+    subject: str
+    title: str
+    due_date: str
 
 @app.get("/")
 def home():
@@ -935,7 +941,90 @@ def delete_class(class_id: int):
     return {
         "message": "Class deleted successfully"
     }
-    
+
+
+@app.post("/homework")
+def add_homework(homework: Homework):
+    db = SessionLocal()
+
+    new_homework = HomeworkDB(
+        class_name=homework.class_name,
+        subject=homework.subject,
+        title=homework.title,
+        due_date=homework.due_date
+    )
+
+    db.add(new_homework)
+    db.commit()
+    db.refresh(new_homework)
+    db.close()
+
+    return {
+        "message": "Homework added successfully",
+        "id": new_homework.id
+    }
+
+@app.get("/homework")
+def get_homework():
+    db = SessionLocal()
+
+    homework = db.query(HomeworkDB).all()
+
+    db.close()
+
+    return homework
+
+
+@app.put("/homework/{homework_id}")
+def update_homework(homework_id: int, homework: Homework):
+    db = SessionLocal()
+
+    db_homework = db.query(HomeworkDB).filter(
+        HomeworkDB.id == homework_id
+    ).first()
+
+    if not db_homework:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Homework not found"
+        )
+
+    db_homework.class_name = homework.class_name
+    db_homework.subject = homework.subject
+    db_homework.title = homework.title
+    db_homework.due_date = homework.due_date
+
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Homework updated successfully"
+    }
+
+
+@app.delete("/homework/{homework_id}")
+def delete_homework(homework_id: int):
+    db = SessionLocal()
+
+    db_homework = db.query(HomeworkDB).filter(
+        HomeworkDB.id == homework_id
+    ).first()
+
+    if not db_homework:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Homework not found"
+        )
+
+    db.delete(db_homework)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Homework deleted successfully"
+    }
   
 if __name__ == "__main__":
     uvicorn.run(

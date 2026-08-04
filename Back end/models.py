@@ -70,3 +70,13 @@ class ClassDB(Base):
     class_name = Column(String)
     section = Column(String)
     teacher_id = Column(Integer)
+
+
+class HomeworkDB(Base):
+    __tablename__ = "homework"
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_name = Column(String)
+    subject = Column(String)
+    title = Column(String)
+    due_date = Column(String)
