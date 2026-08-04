@@ -874,6 +874,68 @@ def add_class(class_data: Class):
         "message": "Class added successfully",
         "id": new_class.id
     }
+
+@app.get("/classes")
+def get_classes():
+    db = SessionLocal()
+
+    classes = db.query(ClassDB).all()
+
+    db.close()
+
+    return classes
+
+
+@app.put("/classes/{class_id}")
+def update_class(class_id: int, class_data: Class):
+    db = SessionLocal()
+
+    db_class = db.query(ClassDB).filter(
+        ClassDB.id == class_id
+    ).first()
+
+    if not db_class:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Class not found"
+        )
+
+        db_class.class_name = class_data.class_name
+    db_class.section = class_data.section
+    db_class.teacher_id = class_data.teacher_id
+
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Class updated successfully"
+    }
+
+
+@app.delete("/classes/{class_id}")
+def delete_class(class_id: int):
+    db = SessionLocal()
+
+    db_class = db.query(ClassDB).filter(
+        ClassDB.id == class_id
+    ).first()
+
+    if not db_class:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Class not found"
+        )
+
+    db.delete(db_class)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Class deleted successfully"
+    }
+    
   
 if __name__ == "__main__":
     uvicorn.run(
