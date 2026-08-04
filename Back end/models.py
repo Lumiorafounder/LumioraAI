@@ -17,6 +17,7 @@ class TeacherDB(Base):
     name = Column(String)
     subject = Column(String)
 
+
 class AttendanceDB(Base):
     __tablename__ = "attendance"
 
@@ -24,6 +25,7 @@ class AttendanceDB(Base):
     student_id = Column(Integer)
     date = Column(String)
     status = Column(String)
+
 
 class FeesDB(Base):
     __tablename__ = "fees"
@@ -51,6 +53,7 @@ class UserDB(Base):
     password = Column(String)
     role = Column(String)
 
+
 class MarksDB(Base):
     __tablename__ = "marks"
 
@@ -58,3 +61,12 @@ class MarksDB(Base):
     student_id = Column(Integer)
     subject = Column(String)
     marks = Column(Integer)
+
+
+class ClassDB(Base):
+    __tablename__ = "classes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_name = Column(String)
+    section = Column(String)
+    teacher_id = Column(Integer)

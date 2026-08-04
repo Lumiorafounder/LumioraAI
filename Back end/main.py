@@ -6,7 +6,7 @@ from fastapi import Depends
 
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB
 from auth import (
     hash_password,
     verify_password,
@@ -70,7 +70,10 @@ class Marks(BaseModel):
     student_id: int
     subject: str
     marks: int
-
+class Class(BaseModel):
+    class_name: str
+    section: str
+    teacher_id: int
 
 @app.get("/")
 def home():
@@ -849,6 +852,27 @@ def delete_marks(marks_id: int):
 
     return {
         "message": "Marks deleted successfully"
+    }
+
+
+@app.post("/classes")
+def add_class(class_data: Class):
+    db = SessionLocal()
+
+    new_class = ClassDB(
+        class_name=class_data.class_name,
+        section=class_data.section,
+        teacher_id=class_data.teacher_id
+    )
+
+    db.add(new_class)
+    db.commit()
+    db.refresh(new_class)
+    db.close()
+
+    return {
+        "message": "Class added successfully",
+        "id": new_class.id
     }
   
 if __name__ == "__main__":
