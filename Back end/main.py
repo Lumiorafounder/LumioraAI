@@ -112,6 +112,15 @@ class Parent(BaseModel):
     address: str
     occupation: str
     student_id: int
+class AIReportRequest(BaseModel):
+    student_id: int
+    father_name: str
+    mother_name: str
+    mobile: str
+    email: str
+    address: str
+    occupation: str
+    student_id: int
 
 @app.get("/")
 def home():
@@ -1486,7 +1495,6 @@ def update_parent(parent_id: int, parent: Parent):
     return {
         "message": "Parent updated successfully"
     }
-
 @app.get("/dashboard")
 def dashboard():
     db = SessionLocal()
@@ -1516,6 +1524,32 @@ def dashboard():
         "pending_leaves": pending_leaves,
         "pending_salary": pending_salary
     }
+
+
+@app.get("/ai-report/{student_id}")
+def ai_progress_report(student_id: int):
+    db = SessionLocal()
+
+    student = db.query(StudentDB).filter(
+        StudentDB.id == student_id
+    ).first()
+
+    if not student:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found"
+        )
+
+    db.close()
+
+    return {
+        "student_id": student_id,
+        "student_name": student.name,
+        "message": "AI Progress Report generated"
+    }
+
+
 if __name__ == "__main__":
     uvicorn.run(
         app,
