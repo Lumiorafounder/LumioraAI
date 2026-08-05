@@ -125,3 +125,15 @@ class SalaryDB(Base):
     deduction = Column(Float)
     net_salary = Column(Float)
     payment_status = Column(String, default="Pending")
+class ParentDB(Base):
+    __tablename__ = "parents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    parent_name = Column(String)
+    father_name = Column(String)
+    mother_name = Column(String)
+    mobile = Column(String)
+    email = Column(String)
+    address = Column(String)
+    occupation = Column(String)
+    student_id = Column(Integer)
