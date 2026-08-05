@@ -1487,28 +1487,35 @@ def update_parent(parent_id: int, parent: Parent):
         "message": "Parent updated successfully"
     }
 
-@app.delete("/parents/{parent_id}")
-def delete_parent(parent_id: int):
+@app.get("/dashboard")
+def dashboard():
     db = SessionLocal()
 
-    parent = db.query(ParentDB).filter(
-        ParentDB.id == parent_id
-    ).first()
+    total_students = db.query(StudentDB).count()
+    total_teachers = db.query(TeacherDB).count()
+    total_parents = db.query(ParentDB).count()
+    total_subjects = db.query(SubjectDB).count()
+    total_classes = db.query(ClassDB).count()
 
-    if not parent:
-        db.close()
-        raise HTTPException(
-            status_code=404,
-            detail="Parent not found"
-        )
+    pending_leaves = db.query(LeaveDB).filter(
+        LeaveDB.status == "Pending"
+    ).count()
 
-    db.delete(parent)
-    db.commit()
+    pending_salary = db.query(SalaryDB).filter(
+        SalaryDB.payment_status == "Pending"
+    ).count()
+
     db.close()
 
     return {
-        "message": "Parent deleted successfully"
-        }
+        "total_students": total_students,
+        "total_teachers": total_teachers,
+        "total_parents": total_parents,
+        "total_subjects": total_subjects,
+        "total_classes": total_classes,
+        "pending_leaves": pending_leaves,
+        "pending_salary": pending_salary
+    }
 if __name__ == "__main__":
     uvicorn.run(
         app,
