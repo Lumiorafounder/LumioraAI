@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
 from database import Base
 
 
@@ -100,3 +100,28 @@ class TimetableDB(Base):
     start_time = Column(String)
     end_time = Column(String)
     teacher_id = Column(Integer)
+
+class LeaveDB(Base):
+    __tablename__ = "leaves"
+
+    id = Column(Integer, primary_key=True, index=True)
+    employee_name = Column(String)
+    leave_type = Column(String)
+    from_date = Column(String)
+    to_date = Column(String)
+    reason = Column(String)
+    status = Column(String, default="Pending")
+
+class SalaryDB(Base):
+    __tablename__ = "salaries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    employee_name = Column(String)
+    employee_id = Column(String)
+    designation = Column(String)
+    month = Column(String)
+    basic_salary = Column(Float)
+    bonus = Column(Float)
+    deduction = Column(Float)
+    net_salary = Column(Float)
+    payment_status = Column(String, default="Pending")

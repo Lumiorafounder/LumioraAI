@@ -4,7 +4,20 @@ from pydantic import BaseModel
 import uvicorn
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB, HomeworkDB, ExamDB, TimetableDB
+from models import (
+    StudentDB,
+    TeacherDB,
+    AttendanceDB,
+    FeesDB,
+    SubjectDB,
+    UserDB,
+    MarksDB,
+    ClassDB,
+    HomeworkDB,
+    ExamDB,
+    TimetableDB,
+    LeaveDB
+)
 
 from auth import (
     hash_password,
@@ -88,6 +101,13 @@ class Timetable(BaseModel):
     start_time: str
     end_time: str
     teacher_id: int
+
+class Leave(BaseModel):
+    employee_name: str
+    leave_type: str
+    from_date: str
+    to_date: str
+    reason: str
 
 @app.get("/")
 def home():
@@ -1183,18 +1203,18 @@ def update_timetable(timetable_id: int, timetable: Timetable):
 def delete_timetable(timetable_id: int):
     db = SessionLocal()
 
-    db_timetable = db.query(TimetableDB).filter(
+    timetable = db.query(TimetableDB).filter(
         TimetableDB.id == timetable_id
     ).first()
 
-    if not db_timetable:
+    if not timetable:
         db.close()
         raise HTTPException(
             status_code=404,
             detail="Timetable not found"
         )
 
-    db.delete(db_timetable)
+    db.delete(timetable)
     db.commit()
     db.close()
 
@@ -1202,6 +1222,89 @@ def delete_timetable(timetable_id: int):
         "message": "Timetable deleted successfully"
     }
 
+
+@app.post("/leave")
+def apply_leave(leave: Leave):
+    ...
+    db = SessionLocal()
+
+    new_leave = LeaveDB(
+        employee_name=leave.employee_name,
+        leave_type=leave.leave_type,
+        from_date=leave.from_date,
+        to_date=leave.to_date,
+        reason=leave.reason,
+        status="Pending"
+    )
+
+    db.add(new_leave)
+    db.commit()
+    db.refresh(new_leave)
+    db.close()
+
+    return {
+        "message": "Leave applied successfully",
+        "id": new_leave.id
+    }
+
+@app.get("/leave")
+def get_leaves():
+    db = SessionLocal()
+
+    leaves = db.query(LeaveDB).all()
+
+    db.close()
+
+    return leaves
+
+
+@app.put("/leave/{leave_id}")
+def update_leave_status(leave_id: int, status: str):
+    db = SessionLocal()
+
+    leave = db.query(LeaveDB).filter(
+        LeaveDB.id == leave_id
+    ).first()
+
+    if not leave:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Leave not found"
+        )
+
+    leave.status = status
+
+    db.commit()
+    db.refresh(leave)
+    db.close()
+
+    return {
+        "message": "Leave status updated successfully"
+    }
+
+@app.delete("/leave/{leave_id}")
+def delete_leave(leave_id: int):
+    db = SessionLocal()
+
+    leave = db.query(LeaveDB).filter(
+        LeaveDB.id == leave_id
+    ).first()
+
+    if not leave:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Leave not found"
+        )
+
+    db.delete(leave)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Leave deleted successfully"
+    }
 if __name__ == "__main__":
     uvicorn.run(
         app,
