@@ -4,20 +4,7 @@ from pydantic import BaseModel
 import uvicorn
 
 from database import engine, Base, SessionLocal
-from models import (
-    StudentDB,
-    TeacherDB,
-    AttendanceDB,
-    FeesDB,
-    SubjectDB,
-    UserDB,
-    MarksDB,
-    ClassDB,
-    HomeworkDB,
-    ExamDB,
-    TimetableDB,
-    LeaveDB
-)
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB, HomeworkDB, ExamDB, TimetableDB, LeaveDB, SalaryDB
 
 from auth import (
     hash_password,
@@ -108,6 +95,15 @@ class Leave(BaseModel):
     from_date: str
     to_date: str
     reason: str
+
+class Salary(BaseModel):
+    employee_name: str
+    employee_id: str
+    designation: str
+    month: str
+    basic_salary: float
+    bonus: float
+    deduction: float
 
 @app.get("/")
 def home():
@@ -1304,6 +1300,107 @@ def delete_leave(leave_id: int):
 
     return {
         "message": "Leave deleted successfully"
+    }
+
+@app.post("/salary")
+def add_salary(salary: Salary):
+    db = SessionLocal()
+
+    net_salary = (
+        salary.basic_salary +
+        salary.bonus -
+        salary.deduction
+    )
+
+    new_salary = SalaryDB(
+        employee_name=salary.employee_name,
+        employee_id=salary.employee_id,
+        designation=salary.designation,
+        month=salary.month,
+        basic_salary=salary.basic_salary,
+        bonus=salary.bonus,
+        deduction=salary.deduction,
+        net_salary=net_salary,
+        payment_status="Pending"
+    )
+
+    db.add(new_salary)
+    db.commit()
+    db.refresh(new_salary)
+    db.close()
+
+    return {
+        "message": "Salary added successfully",
+        "id": new_salary.id
+    }
+
+@app.get("/salary")
+def get_salaries():
+    db = SessionLocal()
+
+    salaries = db.query(SalaryDB).all()
+
+    db.close()
+
+    return salaries
+
+@app.get("/salary")
+def get_salaries():
+    db = SessionLocal()
+
+    salaries = db.query(SalaryDB).all()
+
+    db.close()
+
+    return salaries
+
+
+@app.put("/salary/{salary_id}")
+def update_salary_status(salary_id: int, payment_status: str):
+    db = SessionLocal()
+
+    salary = db.query(SalaryDB).filter(
+        SalaryDB.id == salary_id
+    ).first()
+
+    if not salary:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Salary record not found"
+        )
+
+    salary.payment_status = payment_status
+
+    db.commit()
+    db.refresh(salary)
+    db.close()
+
+    return {
+        "message": "Salary status updated successfully"
+    }
+
+@app.delete("/salary/{salary_id}")
+def delete_salary(salary_id: int):
+    db = SessionLocal()
+
+    salary = db.query(SalaryDB).filter(
+        SalaryDB.id == salary_id
+    ).first()
+
+    if not salary:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Salary record not found"
+        )
+
+    db.delete(salary)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Salary deleted successfully"
     }
 if __name__ == "__main__":
     uvicorn.run(
