@@ -4,8 +4,7 @@ from pydantic import BaseModel
 import uvicorn
 
 from database import engine, Base, SessionLocal
-from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB, HomeworkDB, ExamDB, TimetableDB, LeaveDB, SalaryDB
-
+from models import StudentDB, TeacherDB, AttendanceDB, FeesDB, SubjectDB, UserDB, MarksDB, ClassDB, HomeworkDB, ExamDB, TimetableDB, LeaveDB, SalaryDB, ParentDB
 from auth import (
     hash_password,
     verify_password,
@@ -104,6 +103,15 @@ class Salary(BaseModel):
     basic_salary: float
     bonus: float
     deduction: float
+class Parent(BaseModel):
+    parent_name: str
+    father_name: str
+    mother_name: str
+    mobile: str
+    email: str
+    address: str
+    occupation: str
+    student_id: int
 
 @app.get("/")
 def home():
@@ -1402,6 +1410,105 @@ def delete_salary(salary_id: int):
     return {
         "message": "Salary deleted successfully"
     }
+
+@app.post("/parents")
+def add_parent(parent: Parent):
+    db = SessionLocal()
+
+    new_parent = ParentDB(
+        parent_name=parent.parent_name,
+        father_name=parent.father_name,
+        mother_name=parent.mother_name,
+        mobile=parent.mobile,
+        email=parent.email,
+        address=parent.address,
+        occupation=parent.occupation,
+        student_id=parent.student_id
+    )
+
+    db.add(new_parent)
+    db.commit()
+    db.refresh(new_parent)
+    db.close()
+
+    return {
+        "message": "Parent added successfully",
+        "id": new_parent.id
+    }
+
+@app.get("/parents/{parent_id}")
+def get_parent(parent_id: int):
+    db = SessionLocal()
+
+    parent = db.query(ParentDB).filter(
+        ParentDB.id == parent_id
+    ).first()
+
+    db.close()
+
+    if not parent:
+        raise HTTPException(
+            status_code=404,
+            detail="Parent not found"
+        )
+
+    return parent
+
+
+@app.put("/parents/{parent_id}")
+def update_parent(parent_id: int, parent: Parent):
+    db = SessionLocal()
+
+    existing_parent = db.query(ParentDB).filter(
+        ParentDB.id == parent_id
+    ).first()
+
+    if not existing_parent:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Parent not found"
+        )
+
+    existing_parent.parent_name = parent.parent_name
+    existing_parent.father_name = parent.father_name
+    existing_parent.mother_name = parent.mother_name
+    existing_parent.mobile = parent.mobile
+    existing_parent.email = parent.email
+    existing_parent.address = parent.address
+    existing_parent.occupation = parent.occupation
+    existing_parent.student_id = parent.student_id
+
+    db.commit()
+    db.refresh(existing_parent)
+    db.close()
+
+    return {
+        "message": "Parent updated successfully"
+    }
+
+@app.delete("/parents/{parent_id}")
+def delete_parent(parent_id: int):
+    db = SessionLocal()
+
+    parent = db.query(ParentDB).filter(
+        ParentDB.id == parent_id
+    ).first()
+
+    if not parent:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Parent not found"
+        )
+
+    db.delete(parent)
+    db.commit()
+    db.close()
+
+    return {
+        "message": "Parent deleted successfully"
+        }
 if __name__ == "__main__":
     uvicorn.run(
         app,
